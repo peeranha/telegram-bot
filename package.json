@@ -1,0 +1,17 @@
+{
+  "name": "telegram-bot",
+  "version": "1.0.0",
+  "description": "Peeranha serverless Telegram Bot",
+  "dependencies": {
+    "axios": "^0.19.2"
+  },
+  "devDependencies": {
+    "serverless-dotenv-plugin": "^2.1.1",
+    "serverless-offline": "^5.12.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alexander Kohonovsky",
+  "license": "MIT"
+}

@@ -23,8 +23,9 @@ exports.dispatcher = async (Update) => {
 async function handleMessage(Message) {
     const chatId = Message.chat.id;
     const text = Message.text;
+    const firstName = Message.from.first_name;
 
-    const response = `Hi there! You asked "${text}"\n`
+    const response = `Hi ${firstName}! You asked "${text}"\n`
         + `I don't know the answer, but you can check our website: https://peeranha.io/faq/`;
 
     await sendMessage(chatId, response);

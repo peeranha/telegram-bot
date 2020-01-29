@@ -7,11 +7,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: install sls
-          command: npm install -g serverless
+          name: Install Serverless CLI
+          command: sudo npm install -g serverless
       - run:
-          name: download dependencies
+          name: Install app dependencies
           command: npm ci
       - run:
-          name: deploy
+          name: Deploy application
           command: sls deploy

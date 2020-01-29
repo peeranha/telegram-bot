@@ -16,13 +16,14 @@ package:
     - docs
     - .travis.yml
     - .gitignore
+    - .iml
     - example.env
     - README.md
 
 functions:
   bot:
     handler: handler.bot
-    memorySize: 128
+    memorySize: 64
     timeout: 5
     description: Main entrypoint for Telegram Webhook.
     events:

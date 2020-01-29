@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:12
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: install sls
+          command: npm install -g serverless
+      - run:
+          name: download dependencies
+          command: npm ci
+      - run:
+          name: deploy
+          command: sls deploy

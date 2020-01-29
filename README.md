@@ -1,6 +1,6 @@
 # Telegram Bot
 
-This is a Telegram bot for Peeranha website written on Node.js as a AWS Lambda function.
+This is a [@peeranha_bot](https://t.me/@peeranha_bot) Telegram bot for Peeranha website written on Node.js AWS Lambda function.
 
 ## Setup
 ### Telegram
@@ -15,8 +15,6 @@ This is a Telegram bot for Peeranha website written on Node.js as a AWS Lambda f
 ### Setting Webhooks
 * A curl example for a verified certificate:  
   `curl -F “url=https://<YOURDOMAIN.EXAMPLE>:<PORT>/<WEBHOOKLOCATION>" https://api.telegram.org/bot<YOURTOKEN>/setWebhook`
-* A curl example for a self-signed certificate:  
-  `curl -F "url=https://<YOURDOMAIN.EXAMPLE>:<PORT>/<WEBHOOKLOCATION>" -F "certificate=@<YOURCERTIFICATE>.pem" https://api.telegram.org/bot<YOURTOKEN>/setWebhook`
 * A curl example to clear a previous Webhook:  
   `curl -F "url=" https://api.telegram.org/bot<YOURTOKEN>/setWebhook`
 

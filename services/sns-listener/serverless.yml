@@ -1,0 +1,33 @@
+service: peeranha-sns-listener
+
+plugins:
+  - serverless-bundle
+  - serverless-dotenv-plugin
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  #stage: dev
+  region: us-east-1
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:us-east-1:939077196930:table/subscribers"
+
+functions:
+  web:
+    handler: handler.listener
+    memorySize: 128
+    timeout: 5
+    description: Handle new events in the SNS
+    events:
+      - sns: ${env:NEW_QUESTION_TOPIC_ARN}
+

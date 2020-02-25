@@ -1,12 +1,14 @@
 {
-  "name": "telegram-bot",
+  "name": "peeranha",
   "version": "1.0.0",
   "description": "Peeranha serverless Telegram Bot",
   "dependencies": {
     "axios": "^0.19.2"
   },
   "devDependencies": {
-    "serverless-dotenv-plugin": "^2.1.1",
+    "aws-sdk": "^2.625.0",
+    "serverless-bundle": "^1.3.1",
+    "serverless-dotenv-plugin": "^2.3.2",
     "serverless-offline": "^5.12.1"
   },
   "scripts": {

@@ -79,6 +79,11 @@ async function handleMessage(Message) {
             await subscribeToCommunity(chatId, communityId);
             await sendMessage(chatId, `You're subscribed to ${communityId}!`);
         }
+        if (text.startsWith('/unsubscribe ')) {
+            const communityId = parseInt(text.substring(12));
+            await unsubscribeFromCommunity(chatId, communityId);
+            await sendMessage(chatId, `You're unsubscribed from ${communityId}!`);
+        }
     } else {
         const response = `Hi ${firstName}! You asked '${text}'\n`
             + `I don't know the answer, but you can check our website: https://peeranha.io/faq/\n`
@@ -117,6 +122,31 @@ async function subscribeToCommunity(chatId, communityId) {
             Item: {
                 'chatId': chatId,
                 'communityIds': [communityId]
+            }
+        }).promise();
+    }
+    return promise;
+}
+
+async function unsubscribeFromCommunity(chatId, communityId) {
+    const existingChatRes = await docClient.get({
+        TableName: 'subscribers',
+        Key: {
+            'chatId': chatId
+        },
+    }).promise();
+    const existingChat = existingChatRes.Item;
+    let promise = Promise.resolve();
+    if (existingChat) {
+        const newSet = new Set(existingChat.communityIds);
+        newSet.delete(communityId);
+        promise = docClient.update({
+            TableName: 'subscribers',
+            Key: {chatId: chatId},
+            ReturnValues: 'ALL_NEW',
+            UpdateExpression: "set communityIds = :ids",
+            ExpressionAttributeValues: {
+                ":ids": Array.from(newSet)
             }
         }).promise();
     }

@@ -10,6 +10,9 @@ jobs:
           name: Install Serverless CLI
           command: sudo npm install -g serverless
       - run:
+          name: Change dirs
+          command: cd services/sns-listener
+      - run:
           name: Install app dependencies
           command: npm ci
       - run:

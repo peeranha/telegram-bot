@@ -1,5 +1,5 @@
-import AWS from "aws-sdk";
-import {sendMessage} from "../../libs/telegram";
+import AWS from 'aws-sdk';
+import {sendMessage} from '../../libs/telegram';
 
 console.info('Loading bot function.');
 
@@ -11,7 +11,7 @@ if (!process.env.TELEGRAM_BOT_TOKEN) {
 
 // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html
 const docClient = new AWS.DynamoDB.DocumentClient({
-    region: "us-east-1"
+    region: 'us-east-1'
 });
 
 /**
@@ -31,7 +31,7 @@ export const bot = async (event, context) => {
     }
 
     if (!event.body) {
-        console.warn("No body payload is provided.");
+        console.warn('No body payload is provided.');
         return {statusCode: 400};
     }
 
@@ -51,7 +51,7 @@ export const bot = async (event, context) => {
 /**
  * Accept incoming notification from Telegram
  *
- * @param {object} Update Update Telegram Object <a href="https://core.telegram.org/bots/api#update">More</a>
+ * @param {object} Update Update Telegram Object <a href='https://core.telegram.org/bots/api#update'>More</a>
  */
 export const dispatcher = async (Update) => {
     if (Update.message) { // New incoming message of any kind — text, photo, sticker, etc.
@@ -65,36 +65,60 @@ export const dispatcher = async (Update) => {
 /**
  * Handle new message from Telegram
  *
- * @param {object} Message <a href="https://core.telegram.org/bots/api#message">Message</a> object from Telegram.
+ * @param {object} Message <a href='https://core.telegram.org/bots/api#message'>Message</a> object from Telegram.
  */
 async function handleMessage(Message) {
     const chatId = Message.chat.id;
     const text = Message.text;
     const firstName = Message.from.first_name;
 
-    const response = `Hi ${firstName}! You asked "${text}"\n`
-        + `I don't know the answer, but you can check our website: https://peeranha.io/faq/\n`
-        + `Your chat ID: ${chatId}, userId: ${Message.from.id}`;
+    // It's a command
+    if (text.charAt(0) === '/') {
+        if (text.startsWith('/subscribe ')) {
+            const communityId = parseInt(text.substring(11));
+            await subscribeToCommunity(chatId, communityId);
+            await sendMessage(chatId, `You're subscribed to ${communityId}!`);
+        }
+    } else {
+        const response = `Hi ${firstName}! You asked '${text}'\n`
+            + `I don't know the answer, but you can check our website: https://peeranha.io/faq/\n`
+            + `Your chat ID: ${chatId}, userId: ${Message.from.id}`;
+        await sendMessage(chatId, response);
+    }
+}
 
-    const existingChat = await docClient.get({
-        TableName: "subscribers",
+async function subscribeToCommunity(chatId, communityId) {
+    const existingChatRes = await docClient.get({
+        TableName: 'subscribers',
         Key: {
             'chatId': chatId
         },
     }).promise();
 
+    const existingChat = existingChatRes.Item;
     console.info(`existingChat: \n ${JSON.stringify(existingChat, null, 2)}`);
 
-    if (!existingChat.Item) {
-        await docClient.put({
-            TableName: "subscribers",
+    let promise;
+    if (existingChat) {
+        const newSet = new Set(existingChat.communityIds);
+        newSet.add(communityId);
+        promise = docClient.update({
+            TableName: 'subscribers',
+            Key: {chatId: chatId},
+            ReturnValues: 'ALL_NEW',
+            UpdateExpression: "set communityIds = :ids",
+            ExpressionAttributeValues: {
+                ":ids": Array.from(newSet)
+            }
+        }).promise();
+    } else {
+        promise = docClient.put({
+            TableName: 'subscribers',
             Item: {
-                "chatId": chatId,
-                "initiatorId": Message.from.id,
-                "command": Message.text
+                'chatId': chatId,
+                'communityIds': [communityId]
             }
         }).promise();
     }
-
-    await sendMessage(chatId, response);
+    return promise;
 }

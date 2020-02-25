@@ -1,9 +1,9 @@
-import AWS from "aws-sdk";
+import AWS from 'aws-sdk';
 import {sendMessage} from '../../libs/telegram';
 
 // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html
 const docClient = new AWS.DynamoDB.DocumentClient({
-    region: "us-east-1"
+    region: 'us-east-1'
 });
 
 /**
@@ -25,7 +25,7 @@ export const listener = async (event, context) => {
         try {
             messageObj = JSON.parse(messageStr);
         } catch (e) {
-            console.error("Message is not in JSON format");
+            console.error('Message is not in JSON format');
             continue;
         }
 
@@ -36,8 +36,7 @@ export const listener = async (event, context) => {
         console.info(`Iterating over results from DynamoDB: \n ${JSON.stringify(res, null, 2)}`);
         for (let j = 0; j < res.Items.length; j++) {
             const chatId = res.Items[j].chatId;
-
-            await sendMessage(chatId, "Content");
+            await sendMessage(chatId, `Update from peeranha: ${messageStr}`);
         }
     }
 
@@ -47,19 +46,11 @@ export const listener = async (event, context) => {
 async function findSubscribers(data) {
     const params = {
         TableName: 'subscribers',
+        // TODO add filtering logic
         // ProjectionExpression: 'chatId',
         // FilterExpression: 'topic = :topic',
-        // ExpressionAttributeValues: {":topic": someTopic}
+        // ExpressionAttributeValues: {':topic': someTopic}
     };
-
-    await docClient.put({
-        TableName: "subscribers",
-        Item: {
-            "uuid": "123-1231-1313-1231",
-            "chatId": "Put here!",
-            "data": data
-        }
-    }).promise();
 
     return docClient.scan(params).promise();
 }

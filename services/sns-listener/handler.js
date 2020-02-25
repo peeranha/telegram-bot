@@ -1,10 +1,5 @@
-import AWS from 'aws-sdk';
 import {sendMessage} from '../../libs/telegram';
-
-// https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html
-const docClient = new AWS.DynamoDB.DocumentClient({
-    region: 'us-east-1'
-});
+import {findSubscribers} from "../../libs/chatDao";
 
 /**
  * Main Lambda function
@@ -42,15 +37,3 @@ export const listener = async (event, context) => {
 
     return {statusCode: 200};
 };
-
-async function findSubscribers(data) {
-    const params = {
-        TableName: 'subscribers',
-        // TODO add filtering logic
-        // ProjectionExpression: 'chatId',
-        // FilterExpression: 'topic = :topic',
-        // ExpressionAttributeValues: {':topic': someTopic}
-    };
-
-    return docClient.scan(params).promise();
-}

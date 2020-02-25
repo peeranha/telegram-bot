@@ -1,18 +1,11 @@
-import AWS from 'aws-sdk';
 import {sendMessage} from '../../libs/telegram';
-
-console.info('Loading bot function.');
+import {createChat, updateChat} from "../../libs/chatDao";
 
 let ready = true;
 if (!process.env.TELEGRAM_BOT_TOKEN) {
     console.error(`Please, provide TELEGRAM_BOT_TOKEN env variable.`);
     ready = false;
 }
-
-// https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html
-const docClient = new AWS.DynamoDB.DocumentClient({
-    region: 'us-east-1'
-});
 
 /**
  * Main Lambda function
@@ -93,13 +86,7 @@ async function handleMessage(Message) {
 }
 
 async function subscribeToCommunity(chatId, communityId) {
-    const existingChatRes = await docClient.get({
-        TableName: 'subscribers',
-        Key: {
-            'chatId': chatId
-        },
-    }).promise();
-
+    const existingChatRes = getChat(chatId);
     const existingChat = existingChatRes.Item;
     console.info(`existingChat: \n ${JSON.stringify(existingChat, null, 2)}`);
 
@@ -107,48 +94,21 @@ async function subscribeToCommunity(chatId, communityId) {
     if (existingChat) {
         const newSet = new Set(existingChat.communityIds);
         newSet.add(communityId);
-        promise = docClient.update({
-            TableName: 'subscribers',
-            Key: {chatId: chatId},
-            ReturnValues: 'ALL_NEW',
-            UpdateExpression: "set communityIds = :ids",
-            ExpressionAttributeValues: {
-                ":ids": Array.from(newSet)
-            }
-        }).promise();
+        promise = updateChat(Array.from(newSet));
     } else {
-        promise = docClient.put({
-            TableName: 'subscribers',
-            Item: {
-                'chatId': chatId,
-                'communityIds': [communityId]
-            }
-        }).promise();
+        promise = createChat(chatId, [communityId])
     }
     return promise;
 }
 
 async function unsubscribeFromCommunity(chatId, communityId) {
-    const existingChatRes = await docClient.get({
-        TableName: 'subscribers',
-        Key: {
-            'chatId': chatId
-        },
-    }).promise();
+    const existingChatRes = getChat(chatId);
     const existingChat = existingChatRes.Item;
     let promise = Promise.resolve();
     if (existingChat) {
         const newSet = new Set(existingChat.communityIds);
         newSet.delete(communityId);
-        promise = docClient.update({
-            TableName: 'subscribers',
-            Key: {chatId: chatId},
-            ReturnValues: 'ALL_NEW',
-            UpdateExpression: "set communityIds = :ids",
-            ExpressionAttributeValues: {
-                ":ids": Array.from(newSet)
-            }
-        }).promise();
+        promise = updateChat(Array.from(newSet));
     }
     return promise;
 }

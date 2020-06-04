@@ -17,10 +17,15 @@ bot.onText(/\/show/, msg =>{                    //show
     showCommunities(id);   
 })
 
-bot.onText(/\/unsubscribe/, msg =>{               //subscribe
+bot.onText(/\/myfollow/, msg =>{                    //show
     const {id} = msg.chat
-    const communityName = msg.text
-    unSubscribeToCommunity(id, communityName);
+    console.log(msg)
+    myFollow(id);   
+})
+
+bot.onText(/\/addcom/, msg =>{               //subscribe
+    const {id} = msg.chat
+    addCommunities(id);
 })
 
 async function subscribeToCommunity(chatId, Name){
@@ -36,7 +41,7 @@ async function subscribeToCommunity(chatId, Name){
     else{bot.sendMessage(chatId, "sub");}
 }
 
-async function unSubscribeToCommunity(chatId, communityId){
+async function addCommunities(chatId){
     let propsJson = JSON.stringify({
         communityName: 'community1',
         communityId: '1',
@@ -62,8 +67,8 @@ async function unSubscribeToCommunity(chatId, communityId){
 
 async function showCommunities(chatId){
     let propsJson = JSON.stringify({}); 
+    console.log(chatId.toString())
     var print = await callService(COMMUNITIES_GET_SERVICE, propsJson, true); 
-
     if(!print.body.length) {
         bot.sendMessage(chatId, 'communities not found')
         return;
@@ -80,11 +85,34 @@ async function showCommunities(chatId){
 
 
 
+async function myFollow(chatId){
+    let propsJson = JSON.stringify({
+        user: chatId.toString(),
+    }); 
+    console.log(chatId.toString())
+    var print = await callService(SUBCOMMUNITY_GET_SERVICE, propsJson); 
+    if(!print.body.length) {
+        bot.sendMessage(chatId, 'communities not found')
+        return;
+    };
+
+    const html = print.body.map((f,i) => {
+        return `<b>${i + 1}</b>. ${f.community}`
+    }).join('\n')
+               
+    bot.sendMessage(chatId, html, {
+        parse_mode: 'HTML'
+    }) 
+}
+
+
+
 
 
 const COMMUNITY_ADD_SERVICE = 'community/add';
 const COMMUNITIES_GET_SERVICE = 'communities/get';
 const SUBCOMMUNITY_ADD_SERVICE = 'subcommunity/add';
+const SUBCOMMUNITY_GET_SERVICE = 'subcommunity/get';
 
 async function callService(service, props, isGet = false) {
     try{

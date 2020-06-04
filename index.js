@@ -11,19 +11,24 @@ bot.onText(/\/subscribe (.+)/, (msg,  [source, match]) =>{               //subsc
     subscribeToCommunity(id, match);
 })
 
+bot.onText(/\/unsubscribe (.+)/, (msg,  [source, match]) =>{               //subscribe
+    const {id} = msg.chat
+    unSubscribeToCommunity(id, match);
+})
+
 bot.onText(/\/show/, msg =>{                    //show
     const {id} = msg.chat
     console.log(msg)
     showCommunities(id);   
 })
 
-bot.onText(/\/myfollow/, msg =>{                    //show
+bot.onText(/\/myfollow/, msg =>{                    //myfollow
     const {id} = msg.chat
     console.log(msg)
     myFollow(id);   
 })
 
-bot.onText(/\/addcom/, msg =>{               //subscribe
+bot.onText(/\/addcom/, msg =>{               //addcom
     const {id} = msg.chat
     addCommunities(id);
 })
@@ -39,6 +44,19 @@ async function subscribeToCommunity(chatId, Name){
         bot.sendMessage(chatId, "error: " + print.errorMessage );
     }
     else{bot.sendMessage(chatId, "sub");}
+}
+
+async function unSubscribeToCommunity(chatId, Name){
+    console.log(Name)
+    let propsJson = JSON.stringify({
+        community: Name.toString(),
+        user: chatId.toString(),
+    }); 
+    var print = await callService(UNSUBCOMMUNITY_ADD_SERVICE, propsJson); 
+    if(print.errorMessage != null){
+        bot.sendMessage(chatId, "error: " + print.errorMessage );
+    }
+    else{bot.sendMessage(chatId, "unSub");}
 }
 
 async function addCommunities(chatId){
@@ -113,6 +131,7 @@ const COMMUNITY_ADD_SERVICE = 'community/add';
 const COMMUNITIES_GET_SERVICE = 'communities/get';
 const SUBCOMMUNITY_ADD_SERVICE = 'subcommunity/add';
 const SUBCOMMUNITY_GET_SERVICE = 'subcommunity/get';
+const UNSUBCOMMUNITY_ADD_SERVICE = 'subcommunity/delete';
 
 async function callService(service, props, isGet = false) {
     try{

@@ -1,18 +1,25 @@
-const fetch = require("node-fetch");
-const AWS = require('aws-sdk');
 const TelegramBot = require('node-telegram-bot-api');
-// const { callService, SUBCOMMUNITY_ADD_SERVICE, COMMUNITY_ADD_SERVICE, COMMUNITIES_GET_SERVICE } = require('./aws-connector');
+
+const { callService,
+        SUBSCRIBETOCOMMUNITY_ADD_SERVICE, 
+        SUBSCRIBETOCOMMUNITY_GET_SERVICE, 
+        UNSUBSCRIBETOCOMMUNITY_ADD_SERVICE, 
+        COMMUNITY_ADD_SERVICE, 
+        COMMUNITIES_GET_SERVICE } = require("./aws-connector");
+
 
 const Token = '1275969487:AAE_5s9X1mPJ4fyPw8ofq5WdW1n46XE3oPg';
 const bot = new TelegramBot(Token, {polling: true});
                 
 bot.onText(/\/subscribe (.+)/, (msg,  [source, match]) => {               //subscribe
     const { id } = msg.chat;
+    console.log(msg);
     subscribeToCommunity(id, match);
 })
 
 bot.onText(/\/unsubscribe (.+)/, (msg,  [source, match]) => {               //subscribe
     const { id } = msg.chat;
+    console.log(msg);
     unSubscribeToCommunity(id, match);
 })
 
@@ -30,13 +37,13 @@ bot.onText(/\/myfollow/, msg =>{                    //myfollow
 
 bot.onText(/\/addcom/, msg =>{               //addcom
     const { id } = msg.chat;
+    console.log(msg);
     addCommunities(id);
 })
 
-const subscribeToCommunity = async (chatId, name) => {
-    console.log(name)
+const subscribeToCommunity = async (chatId, community) => {
     const response = await callService(SUBSCRIBETOCOMMUNITY_ADD_SERVICE, {
-        community: name.toString(),
+        community: community.toString(),
         user: chatId.toString(),
     }); 
 
@@ -47,10 +54,9 @@ const subscribeToCommunity = async (chatId, name) => {
     }
 }
 
-const unSubscribeToCommunity = async (chatId, Name) => {
-    console.log(Name);
+const unSubscribeToCommunity = async (chatId, community) => {
     const response = await callService(UNSUBSCRIBETOCOMMUNITY_ADD_SERVICE, {
-        community: Name.toString(),
+        community: community.toString(),
         user: chatId.toString(),
     }); 
 
@@ -88,7 +94,6 @@ const addCommunities = async (chatId) => {
 }
 
 const showCommunities = async (chatId) => {
-    console.log(chatId.toString());
     const response = await callService(COMMUNITIES_GET_SERVICE, {}, true); 
 
     if(response.body.length) {
@@ -105,8 +110,8 @@ const showCommunities = async (chatId) => {
 }
 
 const myFollow = async (chatId) => {
-    console.log(chatId.toString());
-    const response = await callService(SUBSCRIBETOCOMMUNITY_GET_SERVICE, { user: chatId.toString() }); 
+    const response = await callService(SUBSCRIBETOCOMMUNITY_GET_SERVICE, { user: chatId.toString() });
+
     if(response.body.length) {
         const html = response.body.map((f,i) => {
             return `<b>${i + 1}</b>. ${f.community}`
@@ -118,42 +123,4 @@ const myFollow = async (chatId) => {
     } else {
         bot.sendMessage(chatId, 'Communities not found');
     }   
-}
-
-const COMMUNITY_ADD_SERVICE = 'community/add';
-const COMMUNITIES_GET_SERVICE = 'communities/get';
-const SUBSCRIBETOCOMMUNITY_ADD_SERVICE = 'subscribeToCommunity/add';
-const SUBSCRIBETOCOMMUNITY_GET_SERVICE = 'subscribeToCommunity/get';
-const UNSUBSCRIBETOCOMMUNITY_ADD_SERVICE = 'unSubscribeToCommunity/add';
-
-async function callService(service, props, isGet = false) {
-    try{
-        const url = new URL('http://localhost:3500/' + service);
-
-        if (isGet) {
-          url.search = new URLSearchParams(props).toString();
-        }
-      
-        const rawResponse = await fetch(url, {
-          method: isGet ? 'GET' : 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          ...(!isGet ? { body: JSON.stringify(props) } : {}),
-        });
-        const response = await rawResponse.json();
-        if (rawResponse.status < 200 || rawResponse.status > 208) {
-          return {
-            errorMessage: response.message,
-            errorCode: response.code,
-          };
-        }
-        return {
-          OK: true,
-          body: response,
-        };
-    } catch (err) {
-        console.log('Logger error: ', err.message);
-    }
 }

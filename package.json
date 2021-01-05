@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Peeranha serverless Telegram Bot",
   "dependencies": {
-    "axios": "^0.19.2"
+    "axios": "^0.21.1"
   },
   "devDependencies": {
     "aws-sdk": "^2.625.0",
